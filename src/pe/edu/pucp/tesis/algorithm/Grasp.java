@@ -463,7 +463,7 @@ public class Grasp {
         System.out.println("Iniciando GRASP");
 //        ConfigAlgoritmo.ALFAPACIENTES=0.5;  
 //        ConfigAlgoritmo.ALFAMEDICOS=0.5;
-        ConfigAlgoritmo.N_ITERACIONES_CONST=1000;
+//        ConfigAlgoritmo.N_ITERACIONES_CONST=100;
           
                 firstIt=true;
                 for (int i=1;i<=ConfigAlgoritmo.N_ITERACIONES_CONST;i++)
@@ -509,11 +509,60 @@ public class Grasp {
 //        out.close();        
     }
     
+//    public static void main(String[] args) {
+//        try
+//        {
+//            File f=new File("C:\\Users\\PC-HP\\Desktop\\Tesis 2\\Calibracion\\CalibracionAlfaPacientes.xls");
+//
+//            WritableWorkbook libro = Workbook.createWorkbook(f);
+//            WritableSheet hoja = libro.createSheet("Hoja 0", 0);
+//          
+//            for (int i=0;i<40;i++)
+//            {
+////                FileWriter archivo = null;
+//                System.out.println("********************************Archivo: "+i);
+//                try {
+//
+//                    int j=1;
+////                    for (double alfaP=0.20;alfaP<=0.211;alfaP+=0.001)
+////                    for (double alfaM=0.25;alfaM<=0.291;alfaM+=0.005)
+////                    {
+//                        ConfigAlgoritmo.ALFAMEDICOS=0.26;
+//                        ConfigAlgoritmo.ALFAPACIENTES=0.203;
+//                        ConfigAlgoritmo.N_ITERACIONES_CONST=100;
+//
+//                        long timeStart = System.currentTimeMillis();
+//                        Grasp x = new Grasp();
+//                        VariablesGenericas vg=new VariablesGenericas();
+//                        LecturaArchivo.leerDatos(vg,x,null,"C:\\Users\\PC-HP\\Desktop\\Tesis 2\\DatosCalibracion\\datos"+i+".txt");
+//                        x.ejecutarAlgoritmo();
+//
+//                        long timeEnd = System.currentTimeMillis();
+//                        long time = timeEnd - timeStart;
+//                        System.out.println("AlfaMedico: "+ConfigAlgoritmo.ALFAMEDICOS+" Funcion Objetivo:"+(x.fObjetivo/1000)+" Tiempo: "+time);
+//                        Label lObjetivo=new Label(j,i, (x.fObjetivo/1000)+"");
+////                        Label lTiempo=new Label(j+1,i, time+"");
+//                        hoja.addCell(lObjetivo);
+//                        j++;
+////                    }  
+//                } finally {
+//                    
+//                }
+//            }
+//            libro.write();
+//            libro.close();
+//        
+//        } catch (IOException ex) {
+//            Logger.getLogger(Grasp.class.getName()).log(Level.SEVERE, null, ex);
+//        } catch (WriteException ex) {
+//            Logger.getLogger(Grasp.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//    }
+    
     public static void main(String[] args) {
         try
         {
-            File f=new File("C:\\Users\\PC-HP\\Desktop\\Tesis 2\\Calibracion\\CalibracionAlfaPacientes.xls");
-
+            File f=new File("C:\\Users\\PC-HP\\Desktop\\Tesis 2\\Calibracion\\PruebaExperimentacionGRASP.xls");
             WritableWorkbook libro = Workbook.createWorkbook(f);
             WritableSheet hoja = libro.createSheet("Hoja 0", 0);
           
@@ -524,11 +573,15 @@ public class Grasp {
                 try {
 
                     int j=1;
-                    for (double alfaP=0.2;alfaP<=0.81;alfaP+=0.05)
+                    for (double alfaP=0.25;alfaP<=0.27;alfaP+=0.001)
+//                    for (double alfaM=0.25;alfaM<=0.291;alfaM+=0.005)
+//                    for (int it=1000;it<=10500;it+=500)
                     {
-                        ConfigAlgoritmo.ALFAMEDICOS=0.5;
-                        ConfigAlgoritmo.ALFAPACIENTES=alfaP;
-                        ConfigAlgoritmo.N_ITERACIONES_CONST=1000;
+//                        ConfigAlgoritmo.ALFAMEDICOS=0.260;
+//                        ConfigAlgoritmo.ALFAPACIENTES=0.203;
+                        ConfigAlgoritmo.ALFAPACIENTES=0.5;
+//                        ConfigAlgoritmo.N_ITERACIONES_CONST=6500;
+                        ConfigAlgoritmo.N_ITERACIONES_CONST=100;
 
                         long timeStart = System.currentTimeMillis();
                         Grasp x = new Grasp();
@@ -538,10 +591,11 @@ public class Grasp {
 
                         long timeEnd = System.currentTimeMillis();
                         long time = timeEnd - timeStart;
-                        System.out.println("AlfaPaciente: "+alfaP+" Funcion Objetivo:"+(x.fObjetivo/1000)+" Tiempo: "+time);
+                        System.out.println("Iteraciones: "+ConfigAlgoritmo.N_ITERACIONES_CONST+" Funcion Objetivo:"+(x.fObjetivo/1000)+" Tiempo: "+time);
                         Label lObjetivo=new Label(j,i, (x.fObjetivo/1000)+"");
 //                        Label lTiempo=new Label(j+1,i, time+"");
                         hoja.addCell(lObjetivo);
+//                        hoja.addCell(lTiempo);
                         j++;
                     }  
                 } finally {

@@ -21,6 +21,11 @@ import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jxl.Workbook;
+import jxl.write.Label;
+import jxl.write.WritableSheet;
+import jxl.write.WritableWorkbook;
+import jxl.write.WriteException;
 import pe.edu.pucp.tesis.config.ConfigAlgoritmo;
 import pe.edu.pucp.tesis.model.Medico;
 import pe.edu.pucp.tesis.model.Paciente;
@@ -60,7 +65,7 @@ public class Voraz {
                 Paciente pElegido=listaPendientesP.remove(0);
 //                System.out.println("Atendiendo a "+pElegido.getNombre());
                 Medico mElegido=obtenerMedicoMenorTiempo(listaPendientesM,pElegido);
-                System.out.println("Atendiendo a: "+pElegido.getNombre());
+//                System.out.println("Atendiendo a: "+pElegido.getNombre());
                 //Si no existe medico tratante disponible
                 if (mElegido==null) continue;
                 
@@ -492,17 +497,62 @@ public class Voraz {
         listaSol.add(listaOrdenAt.clone());
         listaOrdenAt=null;
 
-        MostrarResultado();
+//        MostrarResultado();
         fObjetivo=fObj;
         System.out.println("FOBJ: "+fObjetivo);
 //        out.close();        
     }
     
     public static void main(String[] args) {
-            Voraz x = new Voraz();
-            VariablesGenericas vg=new VariablesGenericas();
-            LecturaArchivo.leerDatos(vg,null,x,"C:\\Users\\PC-HP\\Desktop\\prueba.txt");
-            x.ejecutarAlgoritmo();
+            
+             try
+        {
+            File f=new File("C:\\Users\\PC-HP\\Desktop\\Tesis 2\\Calibracion\\PruebaExperimentacionVoraz.xls");
+            WritableWorkbook libro = Workbook.createWorkbook(f);
+            WritableSheet hoja = libro.createSheet("Hoja 0", 0);
+          
+            for (int i=0;i<40;i++)
+            {
+//                FileWriter archivo = null;
+                System.out.println("********************************Archivo: "+i);
+                try {
+
+                    int j=1;
+//                    for (double alfaP=0.20;alfaP<=0.211;alfaP+=0.001)
+//                    for (double alfaM=0.25;alfaM<=0.291;alfaM+=0.005)
+//                    for (int it=1000;it<=10500;it+=500)
+//                    {
+                        ConfigAlgoritmo.ALFAMEDICOS=0.260;
+                        ConfigAlgoritmo.ALFAPACIENTES=0.203;
+                        ConfigAlgoritmo.N_ITERACIONES_CONST=6500;
+
+                        long timeStart = System.currentTimeMillis();
+                        Voraz x = new Voraz();
+                        VariablesGenericas vg=new VariablesGenericas();
+                        LecturaArchivo.leerDatos(vg,null,x,"C:\\Users\\PC-HP\\Desktop\\Tesis 2\\DatosCalibracion\\datos"+i+".txt");
+                        x.ejecutarAlgoritmo();
+
+                        long timeEnd = System.currentTimeMillis();
+                        long time = timeEnd - timeStart;
+                        System.out.println("Iteraciones: "+ConfigAlgoritmo.N_ITERACIONES_CONST+" Funcion Objetivo:"+(x.fObjetivo/1000)+" Tiempo: "+time);
+                        Label lObjetivo=new Label(j,i, (x.fObjetivo/1000)+"");
+                        Label lTiempo=new Label(j+1,i, time+"");
+                        hoja.addCell(lObjetivo);
+                        hoja.addCell(lTiempo);
+//                        j+=2;
+//                    }  
+                } finally {
+                    
+                }
+            }
+            libro.write();
+            libro.close();
+        
+        } catch (IOException ex) {
+            Logger.getLogger(Grasp.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (WriteException ex) {
+            Logger.getLogger(Grasp.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
 }
