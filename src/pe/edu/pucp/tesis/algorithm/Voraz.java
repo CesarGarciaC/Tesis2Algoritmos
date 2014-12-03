@@ -39,7 +39,7 @@ import pe.edu.pucp.tesis.util.LecturaArchivo;
 public class Voraz {
 
     public int[][] MA=null,MT=null,MO=null;
-    public int []S=null;
+    public int []S_V=null;
     public List<Paciente> listaPacientes=new ArrayList<>();
     public List<Medico> listaMedicos=new ArrayList<>();
     public List<Object> listaSol=new ArrayList<>();
@@ -61,15 +61,17 @@ public class Voraz {
             listaPendientesM=obtenerMedicosEspecialidad(e);
             while ((!listaPendientesM.isEmpty()) && (!listaPendientesP.isEmpty()))
             {
-                listaPendientesM=ordernarTiempoAtencion(listaPendientesM,MTCopia,S);
+                listaPendientesM=ordernarTiempoAtencion(listaPendientesM,MTCopia,S_V);
                 Paciente pElegido=listaPendientesP.remove(0);
+                System.out.println("Atendiendo: "+pElegido.getNombre());
 //                System.out.println("Atendiendo a "+pElegido.getNombre());
                 Medico mElegido=obtenerMedicoMenorTiempo(listaPendientesM,pElegido);
 //                System.out.println("Atendiendo a: "+pElegido.getNombre());
                 //Si no existe medico tratante disponible
+                
                 if (mElegido==null) continue;
                 
-                bondadMedicoxPaciente[pElegido.getPosMatriz()]=mElegido.getBondad(MTCopia, S);
+                bondadMedicoxPaciente[pElegido.getPosMatriz()]=mElegido.getBondad(MTCopia, S_V);
                 pacientesAtendidos++;
 //                int tAtencion=7*(S[mElegido.getPosMatriz()]-1) + obtenerDiaSemanaLibre(MTCopia, mElegido);
                 
@@ -79,16 +81,16 @@ public class Voraz {
                 MO[pElegido.getPosMatriz()][mElegido.getPosMatriz()]=listaOrdenAt[mElegido.getPosMatriz()];
                 mElegido.reducirCitasDisponibles(MTCopia);
                 listaPacientesxPosMedicos[pElegido.getPosMatriz()]=mElegido.getPosMatriz();
-                
-                if (mElegido.getTurnosDisponibles()==0)
+//                System.out.println("Medico: "+mElegido.getNombre()+ " "+ mElegido.getTurnosDisponibles());
+                if (mElegido.getTurnosDisponiblesSemana()==0)
                 {
-                    if (S[mElegido.getPosMatriz()]==ConfigAlgoritmo.N_SEMANAS_TRABAJO)
+                    if (S_V[mElegido.getPosMatriz()]==ConfigAlgoritmo.N_SEMANAS_TRABAJO)
                         listaPendientesM.remove(mElegido);
                     else
                     {
 //                        System.out.println(mElegido.getTurnosDisponibles()+" / "+S[mElegido.getPosMatriz()]);
                         mElegido.setTurnosDisponibles(mElegido.getTurnosTrabajo());
-                        S[mElegido.getPosMatriz()]++;
+                        S_V[mElegido.getPosMatriz()]++;
                         ReiniciarMatrizTurnos(MTCopia,mElegido.getPosMatriz());
                     }
                 }
@@ -225,6 +227,7 @@ public class Voraz {
         {
             if (MTCopia[i][indexC]!=0) return i+1;
         }
+        System.out.println("????????????????");
         return -1;
     }
     
@@ -285,7 +288,7 @@ public class Voraz {
                     if (temp.size()==0) temp.add(mx);
                     else
                     {
-                        if (temp.get(temp.size()-1).getBondad(MTCopia,S)<=mx.getBondad(MTCopia,S)) //Validamos primero con el ultimo elemento
+                        if (temp.get(temp.size()-1).getBondad(MTCopia,S_V)<=mx.getBondad(MTCopia,S_V)) //Validamos primero con el ultimo elemento
                         {
                             temp.add(mx);
                             continue;
@@ -293,7 +296,7 @@ public class Voraz {
 
                         for (int i=0;i<temp.size();i++)
                         {
-                          if (temp.get(i).getBondad(MTCopia,S)>mx.getBondad(MTCopia,S))  
+                          if (temp.get(i).getBondad(MTCopia,S_V)>mx.getBondad(MTCopia,S_V))  
                           {
                             temp.add(i, mx); 
                             break;
@@ -309,7 +312,7 @@ public class Voraz {
 
                @Override
                public int compare(Medico o1, Medico o2) {
-                   return Double.compare(o1.getBondad(MT, S), o2.getBondad(MT, S));
+                   return Double.compare(o1.getBondad(MT, S_V), o2.getBondad(MT, S_V));
                }
            });           
            return lm;
@@ -321,7 +324,7 @@ public class Voraz {
     {
         MA=new int[ConfigAlgoritmo.N_PACIENTES][ConfigAlgoritmo.N_MEDICOS];
         MO=new int[ConfigAlgoritmo.N_PACIENTES][ConfigAlgoritmo.N_MEDICOS];
-        S=new int[ConfigAlgoritmo.N_MEDICOS];
+        S_V=new int[ConfigAlgoritmo.N_MEDICOS];
         listaOrdenAt=new int[ConfigAlgoritmo.N_MEDICOS];
         listaPacientesxPosMedicos=new int[ConfigAlgoritmo.N_PACIENTES];
         bondadMedicoxPaciente=new double[ConfigAlgoritmo.N_PACIENTES];
@@ -333,7 +336,7 @@ public class Voraz {
 //                MA[p][m]=0;
 //                MO[p][m]=0;
 //            }
-            S[m]=1;
+            S_V[m]=1;
         }
         
         for (int p=0;p<ConfigAlgoritmo.N_PACIENTES;p++)
@@ -396,93 +399,16 @@ public class Voraz {
     
     public void ejecutarAlgoritmo()
     {
-        long timeStart, timeEnd;
-        
-        FileWriter file=null;
         double fObj=9999999;
-        boolean firstIt;
                
-        try {
-            file = new FileWriter("CalibracionPacientesDecimas.txt");
-        } catch (IOException ex) {
-            Logger.getLogger(Voraz.class.getName()).log(Level.SEVERE, null, ex);
-        }
+//        try {
+//            file = new FileWriter("CalibracionPacientesDecimas.txt");
+//        } catch (IOException ex) {
+//            Logger.getLogger(Voraz.class.getName()).log(Level.SEVERE, null, ex);
+//        }
 
-//        PrintWriter out = new PrintWriter(file);
         System.out.println("Iniciando Voraz");
-         
-//        LeerDatos();
-        
-        
-        //Calibracion ***********************************************************************************
-        /*
-        for (double alfaPac=0;alfaPac<=10;alfaPac++)
-        {
-          ConfigAlgoritmo.ALFAPACIENTES=alfaPac*0.1;
-          out.println(ConfigAlgoritmo.ALFAPACIENTES);
-          out.println();
-          System.out.println("Alfa Pac: "+ConfigAlgoritmo.ALFAPACIENTES);
-          for (double alfaMed=0;alfaMed<=10;alfaMed++)  
-          {
-            ConfigAlgoritmo.ALFAMEDICOS=alfaMed*0.1;
-            out.println(ConfigAlgoritmo.ALFAMEDICOS);
-            System.out.println("Alfa Med: "+ConfigAlgoritmo.ALFAMEDICOS);
-            
-            for (int it=2000;it<=32000;it*=2)
-            {
-                ConfigAlgoritmo.N_ITERACIONES_CONST=it;
-                System.out.print("Iteracion: "+ConfigAlgoritmo.N_ITERACIONES_CONST+" ");
-                timeStart = System.currentTimeMillis();
-                firstIt=true;
-                for (int i=1;i<=ConfigAlgoritmo.N_ITERACIONES_CONST;i++)
-                {
-                     InicializarMatrices();
-                     ejecutarFaseConstruccion();
-                     ejecutarFaseMejora();
-                     double fObjTemp=EvaluarCosto();
 
-                     if (firstIt)
-                     {
-                         fObj=fObjTemp;
-                         firstIt=false;
-                         //LIsta solucion MA - MT - MO
-                            listaSol.clear();
-                            listaSol.add(duplicarMatriz(MA, ConfigAlgoritmo.N_PACIENTES, ConfigAlgoritmo.N_MEDICOS));
-                            listaSol.add(duplicarMatriz(MT, 7, ConfigAlgoritmo.N_MEDICOS));
-                            listaSol.add(duplicarMatriz(MO, ConfigAlgoritmo.N_PACIENTES, ConfigAlgoritmo.N_MEDICOS));
-                            listaSol.add(duplicarLista(listaOrdenAt, listaOrdenAt.length));
-                     }
-                     else
-                     {
-//                        if (fObjTemp<fObj)
-                        if (fObjTemp>fObj)
-                        {
-                            //LIsta solucion MA - MT - MO
-                            listaSol.clear();
-                            listaSol.add(duplicarMatriz(MA, ConfigAlgoritmo.N_PACIENTES, ConfigAlgoritmo.N_MEDICOS));
-                            listaSol.add(duplicarMatriz(MT, 7, ConfigAlgoritmo.N_MEDICOS));
-                            listaSol.add(duplicarMatriz(MO, ConfigAlgoritmo.N_PACIENTES, ConfigAlgoritmo.N_MEDICOS));
-                            listaSol.add(duplicarLista(listaOrdenAt, listaOrdenAt.length));
-                            fObj=fObjTemp;
-                        }
-                     }
-//                     System.out.println("FOBJ FINAL: "+fObj);
-                }
-
-                timeEnd = System.currentTimeMillis();                       
-                long time = timeEnd - timeStart;
-//                out.println(it+" "+fObj + "  " + time);
-                System.out.println(fObj);
-                out.println(fObj);
-            }
-            out.println();
-          }
-        }
-        */
-        
-        //*****************************************************************************************
-        
-       
         InicializarMatrices();
         ejecutarVoraz();
         fObj=EvaluarCosto();
@@ -500,7 +426,6 @@ public class Voraz {
 //        MostrarResultado();
         fObjetivo=fObj;
         System.out.println("FOBJ: "+fObjetivo);
-//        out.close();        
     }
     
     public static void main(String[] args) {

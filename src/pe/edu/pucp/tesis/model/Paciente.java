@@ -51,7 +51,10 @@ public class Paciente {
     
     public Paciente(Paciente p) {
         nombre=p.getNombre();
-        medicoTratante=p.getMedicoTratante();
+        if (p.getMedicoTratante()!=null)
+            medicoTratante=new Medico(p.getMedicoTratante());
+        else
+            medicoTratante=null;
         edad=p.getEdad();
         costoEnfDx=p.getCostoEnfDx();
         especialidadReq=p.getEspecialidadReq();

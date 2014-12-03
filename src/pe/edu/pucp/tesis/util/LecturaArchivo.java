@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,7 +30,7 @@ public class LecturaArchivo {
     
     public static int GRASP=1;
     public static int VORAZ=0;
-    
+    public static VariablesGenericas varGenMem;
     
     /*
     MT
@@ -87,6 +88,7 @@ public class LecturaArchivo {
                     turnosTotales+=Integer.parseInt(t[i]);
                 }
 //                m.setTurnosTrabajo(turnosTotales);
+                System.out.println("Turnos: "+turnosTotales*ConfigAlgoritmo.N_SEMANAS_TRABAJO);
                 m.setTurnosTrabajo(turnosTotales*ConfigAlgoritmo.N_SEMANAS_TRABAJO);
                 m.setPosMatriz(cont);
                 varGenericas.listaMedicos.add(m);
@@ -123,8 +125,10 @@ public class LecturaArchivo {
                 cont++;
             }
             
-            recuperarInformacion(varGenericas,algGrasp, algVoraz);
-            
+            varGenMem=varGenericas;
+//            recuperarInformacion(varGenericas,algGrasp, algVoraz);
+            recuperarInformacion(algGrasp, algVoraz);
+            System.out.println("Perejil");
         } catch (FileNotFoundException ex) {
             Logger.getLogger(LecturaArchivo.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -132,24 +136,37 @@ public class LecturaArchivo {
         }
     }
     
-    public static void recuperarInformacion(VariablesGenericas varG, Grasp algGrasp, Voraz algVoraz)
+//    public static void recuperarInformacion(VariablesGenericas varG, Grasp algGrasp, Voraz algVoraz)
+    public static void recuperarInformacion(Grasp algGrasp, Voraz algVoraz)
     {
+        algGrasp.listaMedicos.clear();
+        algGrasp.listaPacientes.clear();
+        algVoraz.listaMedicos.clear();
+        algVoraz.listaPacientes.clear();
+        
         if (algGrasp!=null)
         {
-            algGrasp.MT=varG.MT;
-            algGrasp.S=varG.S;
-            algGrasp.listaPacientes=varG.listaPacientes;
-            algGrasp.listaMedicos=varG.listaMedicos;
-            algGrasp.listaOrdenAt=varG.listaOrdenAt;
+            algGrasp.MT=varGenMem.MT.clone();
+//            algGrasp.S_G=varG.S;
+            for (Paciente p:varGenMem.listaPacientes)
+                algGrasp.listaPacientes.add(new Paciente(p));
+            
+            for (Medico m:varGenMem.listaMedicos)
+                algGrasp.listaMedicos.add(new Medico(m));
+                    
+            algGrasp.listaOrdenAt=varGenMem.listaOrdenAt.clone();
         }
         
         if (algVoraz!=null)
         {
-            algVoraz.MT=varG.MT;
-            algVoraz.S=varG.S;
-            algVoraz.listaPacientes=varG.listaPacientes;
-            algVoraz.listaMedicos=varG.listaMedicos;
-            algVoraz.listaOrdenAt=varG.listaOrdenAt;
+            algVoraz.MT=varGenMem.MT.clone();
+            for (Paciente p:varGenMem.listaPacientes)
+                algVoraz.listaPacientes.add(new Paciente(p));
+            
+            for (Medico m:varGenMem.listaMedicos)
+                algVoraz.listaMedicos.add(new Medico(m));
+                    
+            algVoraz.listaOrdenAt=varGenMem.listaOrdenAt.clone();
         }
     }
 }

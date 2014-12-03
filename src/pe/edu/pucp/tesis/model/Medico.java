@@ -45,12 +45,15 @@ public class Medico {
         nombre=m.getNombre();
         cmp=m.getCmp();
         experiencia=m.getExperiencia();
+        System.out.println("TT: "+m.getTurnosTrabajo());
         turnosTrabajo=m.getTurnosTrabajo();
+        System.out.println("TD: "+m.getTurnosDisponibles());
         turnosDisponibles=m.getTurnosDisponibles();
         especialidad=m.getEspecialidad();
         posMatriz=m.getPosMatriz();
         bondad=0;
         enListaRCL=false;
+        System.out.println("TDS: "+m.getTurnosDisponiblesSemana());
         turnosDisponiblesSemana=m.getTurnosDisponiblesSemana();
     }
 
@@ -85,7 +88,12 @@ public class Medico {
                     break;
                 }
             }
-
+            if (tiempoCita==0)
+            {
+                System.out.println("TDisp: "+this.getTurnosDisponibles());
+                System.out.println("TDispSem: "+this.getTurnosDisponiblesSemana());
+                
+            }
             this.bondad=((ConfigMedico.vExperiencia)*experiencia*(ConfigMedico.vFactor)*((double)turnosDisponibles/turnosTrabajo))
                        /(ConfigMedico.vTiempoCita*tiempoCita);
             

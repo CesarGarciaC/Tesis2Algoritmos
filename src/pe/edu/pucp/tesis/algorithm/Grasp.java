@@ -40,7 +40,7 @@ import jxl.write.WriteException;
 public class Grasp {
 
     public int[][] MA=null,MT=null,MO=null;
-    public int []S=null;
+    public int []S_G=null;
     public List<Paciente> listaPacientes=new ArrayList<>();
     public List<Medico> listaMedicos=new ArrayList<>();
     public List<Object> listaSol=new ArrayList<>();
@@ -92,16 +92,18 @@ public class Grasp {
                 
                 if (!todosPendientes(listaPendientesM))
                 {                      
-                    double minM=listaPendientesM.get(obtenerMinimoMedico(listaPendientesM)).getBondad(MTCopia,S);
-                    double maxM=listaPendientesM.get(obtenerMaximoMedico(listaPendientesM)).getBondad(MTCopia,S);
+                    double minM=listaPendientesM.get(obtenerMinimoMedico(listaPendientesM)).getBondad(MTCopia,S_G);
+                    double maxM=listaPendientesM.get(obtenerMaximoMedico(listaPendientesM)).getBondad(MTCopia,S_G);
 
                     //Recorremos la lista de pacientes pendientes y agregamos a la MCL
                     //aquellos que cumplan con la condicion del algoritmo 
+                    System.out.println("*******");
                     for (Medico m:listaPendientesM )
                     {
                         if (m.isEnListaRCL()) continue;
 
-                        double bondadM=m.getBondad(MTCopia,S);
+                        double bondadM=m.getBondad(MTCopia,this.S_G);
+                        System.out.println(bondadM+" - "+maxM+" - "+minM);
                         if ((bondadM<=maxM) && (bondadM>=maxM-ConfigAlgoritmo.ALFAMEDICOS*(maxM-minM)))
                         {
                             m.setEnListaRCL(true);
@@ -125,33 +127,35 @@ public class Grasp {
                 else
                     mElegido=MCL.get(new Random().nextInt(MCL.size()));
                 
-                int tAtencion=7*(S[mElegido.getPosMatriz()]-1) + obtenerDiaSemanaLibre(MTCopia, mElegido);
+                int tAtencion=7*(this.S_G[mElegido.getPosMatriz()]-1) + obtenerDiaSemanaLibre(MTCopia, mElegido);
 //                totalBondadPacientesAtendidos+=pElegido.getBondad()*mElegido.getBondad(MTCopia, S);
-                bondadMedicoxPaciente[pElegido.getPosMatriz()]=mElegido.getBondad(MTCopia, S);
+                this.bondadMedicoxPaciente[pElegido.getPosMatriz()]=mElegido.getBondad(MTCopia, this.S_G);
                 
                 if (tAtencion==-1)
                 {
+                    System.out.println("Nombre "+mElegido.getNombre());
+                    System.out.println("TDisp "+mElegido.getTurnosDisponibles());
                     System.out.println("Error tAtencion");
                 }
                 
-                MA[pElegido.getPosMatriz()][mElegido.getPosMatriz()]=tAtencion;
-                listaOrdenAt[mElegido.getPosMatriz()]=listaOrdenAt[mElegido.getPosMatriz()]+1;
-                MO[pElegido.getPosMatriz()][mElegido.getPosMatriz()]=listaOrdenAt[mElegido.getPosMatriz()];
+                this.MA[pElegido.getPosMatriz()][mElegido.getPosMatriz()]=tAtencion;
+                this.listaOrdenAt[mElegido.getPosMatriz()]=this.listaOrdenAt[mElegido.getPosMatriz()]+1;
+                this.MO[pElegido.getPosMatriz()][mElegido.getPosMatriz()]=this.listaOrdenAt[mElegido.getPosMatriz()];
                 mElegido.reducirCitasDisponibles(MTCopia);
 //                System.out.println("Reducir: "+mElegido.getNombre()+" D: "+mElegido.getTurnosDisponibles() +" M: "+mElegido);
-                listaPacientesxPosMedicos[pElegido.getPosMatriz()]=mElegido.getPosMatriz();
+                this.listaPacientesxPosMedicos[pElegido.getPosMatriz()]=mElegido.getPosMatriz();
                 
 //                if (mElegido.getTurnosDisponibles()==0)
                 if (mElegido.getTurnosDisponiblesSemana()==0)
                 {
-                    if (S[mElegido.getPosMatriz()]==ConfigAlgoritmo.N_SEMANAS_TRABAJO)
+                    if (S_G[mElegido.getPosMatriz()]==ConfigAlgoritmo.N_SEMANAS_TRABAJO)
                         listaPendientesM.remove(mElegido);
                     else
                     {
 //                        System.out.println(mElegido.getTurnosDisponibles()+" / "+S[mElegido.getPosMatriz()]);
 //                        mElegido.setTurnosDisponibles(mElegido.getTurnosTrabajo());
                         mElegido.setTurnosDisponiblesSemana(mElegido.getTurnosTrabajo()/ConfigAlgoritmo.N_SEMANAS_TRABAJO);
-                        S[mElegido.getPosMatriz()]++;
+                        this.S_G[mElegido.getPosMatriz()]++;
                         ReiniciarMatrizTurnos(MTCopia,mElegido.getPosMatriz());
                     }
                 }
@@ -174,7 +178,7 @@ public class Grasp {
     public void ReiniciarMatrizTurnos(int [][]MTCopia,int indexM)
     {
         for (int i=0;i<7;i++)
-            MTCopia[i][indexM]=MT[i][indexM];
+            MTCopia[i][indexM]=this.MT[i][indexM];
     }
     
     public Medico obtenerMedicoListaPendiente(List<Medico> lm, String cmp)
@@ -215,7 +219,7 @@ public class Grasp {
         int [][]MTCopia=new int[7][ConfigAlgoritmo.N_MEDICOS];
         for (int c=0;c<ConfigAlgoritmo.N_MEDICOS;c++)
             for (int f=0;f<7;f++)
-                MTCopia[f][c]=MT[f][c];
+                MTCopia[f][c]=this.MT[f][c];
         
         return MTCopia;
     }
@@ -252,7 +256,7 @@ public class Grasp {
     public List<Paciente> OrdenarBondadPacientes(int esp,List<Medico> lpm)
     {
         List<Paciente> temp=new ArrayList<>();
-        for (Paciente p: listaPacientes)
+        for (Paciente p: this.listaPacientes)
         {
             if (p.getEspecialidadReq()==esp)
             {
@@ -289,7 +293,7 @@ public class Grasp {
         
         if (f==1)
         {
-            for (Medico m: listaMedicos)
+            for (Medico m: this.listaMedicos)
             {
                 if (m.getEspecialidad()==esp)
                 {
@@ -299,7 +303,7 @@ public class Grasp {
                     if (temp.size()==0) temp.add(mx);
                     else
                     {
-                        if (temp.get(temp.size()-1).getBondad(MTCopia,S)<=mx.getBondad(MTCopia,S)) //Validamos primero con el ultimo elemento
+                        if (temp.get(temp.size()-1).getBondad(MTCopia,this.S_G)<=mx.getBondad(MTCopia,this.S_G)) //Validamos primero con el ultimo elemento
                         {
                             temp.add(mx);
                             continue;
@@ -307,7 +311,7 @@ public class Grasp {
 
                         for (int i=0;i<temp.size();i++)
                         {
-                          if (temp.get(i).getBondad(MTCopia,S)>mx.getBondad(MTCopia,S))  
+                          if (temp.get(i).getBondad(MTCopia,this.S_G)>mx.getBondad(MTCopia,this.S_G))  
                           {
                             temp.add(i, mx); 
                             break;
@@ -323,7 +327,7 @@ public class Grasp {
 
                @Override
                public int compare(Medico o1, Medico o2) {
-                   return Double.compare(o1.getBondad(MTCopia, S), o2.getBondad(MTCopia, S));
+                   return Double.compare(o1.getBondad(MTCopia, S_G), o2.getBondad(MTCopia,S_G));
                }
            });
             return lm;
@@ -333,12 +337,12 @@ public class Grasp {
     
     public void InicializarMatrices()
     {
-        MA=new int[ConfigAlgoritmo.N_PACIENTES][ConfigAlgoritmo.N_MEDICOS];
-        MO=new int[ConfigAlgoritmo.N_PACIENTES][ConfigAlgoritmo.N_MEDICOS];
-        S=new int[ConfigAlgoritmo.N_MEDICOS];
-        listaOrdenAt=new int[ConfigAlgoritmo.N_MEDICOS];
-        listaPacientesxPosMedicos=new int[ConfigAlgoritmo.N_PACIENTES];
-        bondadMedicoxPaciente=new double[ConfigAlgoritmo.N_PACIENTES];
+        this.MA=new int[ConfigAlgoritmo.N_PACIENTES][ConfigAlgoritmo.N_MEDICOS];
+        this.MO=new int[ConfigAlgoritmo.N_PACIENTES][ConfigAlgoritmo.N_MEDICOS];
+        this.S_G=new int[ConfigAlgoritmo.N_MEDICOS];
+        this.listaOrdenAt=new int[ConfigAlgoritmo.N_MEDICOS];
+        this.listaPacientesxPosMedicos=new int[ConfigAlgoritmo.N_PACIENTES];
+        this.bondadMedicoxPaciente=new double[ConfigAlgoritmo.N_PACIENTES];
 //        totalBondadPacientesAtendidos=0;
         for (int m=0;m<ConfigAlgoritmo.N_MEDICOS;m++)
         {
@@ -348,23 +352,23 @@ public class Grasp {
 //                MA[p][m]=0;
 //                MO[p][m]=0;
 //            }
-            S[m]=1;
+            S_G[m]=1;
         }
         
         for (int p=0;p<ConfigAlgoritmo.N_PACIENTES;p++)
-            listaPacientesxPosMedicos[p]=-1;
+            this.listaPacientesxPosMedicos[p]=-1;
     }
     
     public double EvaluarCosto()
     {
         double costo=0;
         //Recorremos para cada paciente
-        for (Paciente p:listaPacientes)
+        for (Paciente p:this.listaPacientes)
         {
-            int indexPM=listaPacientesxPosMedicos[p.getPosMatriz()];
+            int indexPM=this.listaPacientesxPosMedicos[p.getPosMatriz()];
             if (indexPM==-1) continue;
             int indexP=p.getPosMatriz();
-            costo+=p.getBondad()*bondadMedicoxPaciente[indexP]/MA[indexP][indexPM];
+            costo+=p.getBondad()*this.bondadMedicoxPaciente[indexP]/this.MA[indexP][indexPM];
         }
         
         return (costo);
@@ -376,33 +380,33 @@ public class Grasp {
         {
             for (int f=0;f<ConfigAlgoritmo.N_PACIENTES-1;f++)
             {
-                if (MA[f][c]!=0)
+                if (this.MA[f][c]!=0)
                 {
                    for (int fx=0;fx<ConfigAlgoritmo.N_PACIENTES;fx++) 
                    {
-                       if (MA[fx][c]!=0)
+                       if (this.MA[fx][c]!=0)
                        {
-                           if (MA[fx][c]==MA[f][c]) continue;
+                           if (this.MA[fx][c]==this.MA[f][c]) continue;
                             
-                           Paciente p1=listaPacientes.get(f);
-                           Paciente p2=listaPacientes.get(fx);
+                           Paciente p1=this.listaPacientes.get(f);
+                           Paciente p2=this.listaPacientes.get(fx);
                            
-                           double difOriginal=(p1.getBondad()*bondadMedicoxPaciente[p1.getPosMatriz()]/MA[f][c])+
-                                              (p2.getBondad()*bondadMedicoxPaciente[p2.getPosMatriz()]/MA[fx][c]);
-                           double difCambio=(p1.getBondad()*bondadMedicoxPaciente[p2.getPosMatriz()]/MA[fx][c])+
-                                              (p2.getBondad()*bondadMedicoxPaciente[p1.getPosMatriz()]/MA[f][c]);
+                           double difOriginal=(p1.getBondad()*this.bondadMedicoxPaciente[p1.getPosMatriz()]/this.MA[f][c])+
+                                              (p2.getBondad()*this.bondadMedicoxPaciente[p2.getPosMatriz()]/this.MA[fx][c]);
+                           double difCambio=(p1.getBondad()*this.bondadMedicoxPaciente[p2.getPosMatriz()]/this.MA[fx][c])+
+                                              (p2.getBondad()*this.bondadMedicoxPaciente[p1.getPosMatriz()]/this.MA[f][c]);
                            
                            if (difCambio>difOriginal)
                            {
-                               int aTemp=MA[f][c];
-                               int oTemp=MO[f][c];
-                               double bTemp=bondadMedicoxPaciente[p1.getPosMatriz()];
-                               MA[f][c]=MA[fx][c];
-                               MA[fx][c]=aTemp;
-                               MO[f][c]=MO[fx][c];
-                               MO[fx][c]=oTemp;
-                               bondadMedicoxPaciente[p1.getPosMatriz()]=bondadMedicoxPaciente[p2.getPosMatriz()];
-                               bondadMedicoxPaciente[p2.getPosMatriz()]=bTemp;
+                               int aTemp=this.MA[f][c];
+                               int oTemp=this.MO[f][c];
+                               double bTemp=this.bondadMedicoxPaciente[p1.getPosMatriz()];
+                               this.MA[f][c]=this.MA[fx][c];
+                               this.MA[fx][c]=aTemp;
+                               this.MO[f][c]=this.MO[fx][c];
+                               this.MO[fx][c]=oTemp;
+                               this.bondadMedicoxPaciente[p1.getPosMatriz()]=this.bondadMedicoxPaciente[p2.getPosMatriz()];
+                               this.bondadMedicoxPaciente[p2.getPosMatriz()]=bTemp;
                            }
                        }
                    }
@@ -413,14 +417,14 @@ public class Grasp {
     
     public void MostrarResultado()
     {
-        int [][] _MA=(int[][])listaSol.get(0);
+        int [][] _MA=(int[][])this.listaSol.get(0);
 //        int [][] _MT=(int[][])listaSol.get(1);
-        int [][] _MO=(int[][])listaSol.get(1);
-        int [] _listaOrdenAt=(int[])listaSol.get(2);
+        int [][] _MO=(int[][])this.listaSol.get(1);
+        int [] _listaOrdenAt=(int[])this.listaSol.get(2);
         
         for (int m=0;m<ConfigAlgoritmo.N_MEDICOS;m++)
         {
-           Medico mx=listaMedicos.get(m);
+           Medico mx=this.listaMedicos.get(m);
            System.out.println("Medico: "+mx.getNombre());
            
            Paciente[] listaPacientesAtendidosOrdenada=new Paciente[_listaOrdenAt[m]];
@@ -429,7 +433,7 @@ public class Grasp {
            {
                if (_MA[p][m]!=0)
                {
-                   Paciente px=listaPacientes.get(p);
+                   Paciente px=this.listaPacientes.get(p);
                    listaPacientesAtendidosOrdenada[_MO[p][m]-1]=px;
                }
            }
@@ -449,16 +453,9 @@ public class Grasp {
     
     public void ejecutarAlgoritmo()
     {
-        FileWriter file=null;
         double fObj=9999999;
         boolean firstIt;
                
-        try {
-            file = new FileWriter("CalibracionPacientesDecimas.txt");
-        } catch (IOException ex) {
-            Logger.getLogger(Grasp.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
 //        PrintWriter out = new PrintWriter(file);
         System.out.println("Iniciando GRASP");
 //        ConfigAlgoritmo.ALFAPACIENTES=0.5;  
@@ -478,33 +475,33 @@ public class Grasp {
                          fObj=fObjTemp;
                          firstIt=false;
                          //LIsta solucion MA - MT - MO
-                            listaSol.clear();
-                            listaSol.add(MA.clone());
-                            MA=null;
-                            listaSol.add(MO.clone());
-                            MO=null;
-                            listaSol.add(listaOrdenAt.clone());
-                            listaOrdenAt=null;
+                            this.listaSol.clear();
+                            this.listaSol.add(MA.clone());
+                            this.MA=null;
+                            this.listaSol.add(MO.clone());
+                            this.MO=null;
+                            this.listaSol.add(listaOrdenAt.clone());
+                            this.listaOrdenAt=null;
                      }
                      else
                      {
                         if (fObjTemp>fObj)
                         {
                             //LIsta solucion MA - MT - MO
-                            listaSol.clear();
-                            listaSol.add(MA.clone());
-                            MA=null;
-                            listaSol.add(MO.clone());
-                            MO=null;
-                            listaSol.add(listaOrdenAt.clone());
-                            listaOrdenAt=null;
+                            this.listaSol.clear();
+                            this.listaSol.add(MA.clone());
+                            this.MA=null;
+                            this.listaSol.add(MO.clone());
+                            this.MO=null;
+                            this.listaSol.add(listaOrdenAt.clone());
+                            this.listaOrdenAt=null;
                             fObj=fObjTemp;
                         }
                      }
                 }
 //        out.println(fObj);
-//        MostrarResultado();
-        fObjetivo=fObj;
+        MostrarResultado();
+        this.fObjetivo=fObj;
         System.out.println("FOBJ: "+fObjetivo);
 //        out.close();        
     }
@@ -560,55 +557,7 @@ public class Grasp {
 //    }
     
     public static void main(String[] args) {
-        try
-        {
-            File f=new File("C:\\Users\\PC-HP\\Desktop\\Tesis 2\\Calibracion\\PruebaExperimentacionGRASP.xls");
-            WritableWorkbook libro = Workbook.createWorkbook(f);
-            WritableSheet hoja = libro.createSheet("Hoja 0", 0);
-          
-            for (int i=0;i<40;i++)
-            {
-//                FileWriter archivo = null;
-                System.out.println("********************************Archivo: "+i);
-                try {
-
-                    int j=1;
-                    for (double alfaP=0.25;alfaP<=0.27;alfaP+=0.001)
-//                    for (double alfaM=0.25;alfaM<=0.291;alfaM+=0.005)
-//                    for (int it=1000;it<=10500;it+=500)
-                    {
-//                        ConfigAlgoritmo.ALFAMEDICOS=0.260;
-//                        ConfigAlgoritmo.ALFAPACIENTES=0.203;
-                        ConfigAlgoritmo.ALFAPACIENTES=0.5;
-//                        ConfigAlgoritmo.N_ITERACIONES_CONST=6500;
-                        ConfigAlgoritmo.N_ITERACIONES_CONST=100;
-
-                        long timeStart = System.currentTimeMillis();
-                        Grasp x = new Grasp();
-                        VariablesGenericas vg=new VariablesGenericas();
-                        LecturaArchivo.leerDatos(vg,x,null,"C:\\Users\\PC-HP\\Desktop\\Tesis 2\\DatosCalibracion\\datos"+i+".txt");
-                        x.ejecutarAlgoritmo();
-
-                        long timeEnd = System.currentTimeMillis();
-                        long time = timeEnd - timeStart;
-                        System.out.println("Iteraciones: "+ConfigAlgoritmo.N_ITERACIONES_CONST+" Funcion Objetivo:"+(x.fObjetivo/1000)+" Tiempo: "+time);
-                        Label lObjetivo=new Label(j,i, (x.fObjetivo/1000)+"");
-//                        Label lTiempo=new Label(j+1,i, time+"");
-                        hoja.addCell(lObjetivo);
-//                        hoja.addCell(lTiempo);
-                        j++;
-                    }  
-                } finally {
-                    
-                }
-            }
-            libro.write();
-            libro.close();
-        
-        } catch (IOException ex) {
-            Logger.getLogger(Grasp.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (WriteException ex) {
-            Logger.getLogger(Grasp.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        Grasp g=new Grasp();
+        g.ejecutarAlgoritmo();
     }
 }

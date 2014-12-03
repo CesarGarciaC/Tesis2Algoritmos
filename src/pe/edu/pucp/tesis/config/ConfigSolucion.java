@@ -12,7 +12,7 @@ package pe.edu.pucp.tesis.config;
  */
 public class ConfigSolucion {
     
-    public static double vBondadPaciente;
-    public static double vBondadMedico;
-    public static double vTiempoAtencion;
+    public static double vBondadPaciente=1;
+    public static double vBondadMedico=1;
+    public static double vTiempoAtencion=1;
 }
